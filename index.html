@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halaman Bentuk - Ruang Bentuk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #090d16, #0b1320);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 1.25rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .page-title {
+            text-shadow: 0 0 24px rgba(14,165,233,0.25);
+        }
+    </style>
+</head>
+<body class="p-6 md:p-10">
+    <main class="max-w-6xl mx-auto space-y-8">
+        <header class="flex flex-col md:flex-row items-start justify-between gap-4">
+            <div>
+                <p class="text-xs uppercase tracking-[0.35em] text-sky-400 mb-3">Navigasi Bentuk</p>
+                <h1 class="text-4xl md:text-5xl font-extrabold text-white page-title">Halaman Bentuk</h1>
+                <p class="mt-4 max-w-2xl text-slate-300 leading-relaxed">Pelajari kumpulan bentuk ruang secara ringkas dan kembali kapan saja ke presentasi interaktif.</p>
+            </div>
+            <a href="index.html" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-sky-500 text-white font-semibold shadow-lg shadow-sky-500/20 hover:bg-sky-400 transition">
+                <i class="fa-solid fa-arrow-left"></i>
+                Kembali ke Beranda
+            </a>
+        </header>
+
+        <section class="grid gap-6 md:grid-cols-2">
+            <article class="glass-card p-6">
+                <h2 class="text-xl font-bold text-white mb-3">Kubus</h2>
+                <p class="text-sm text-slate-300 leading-relaxed">Bangun ruang yang dibatasi enam sisi berbentuk bujur sangkar sama besar dengan 12 rusuk dan 8 titik sudut.</p>
+            </article>
+            <article class="glass-card p-6">
+                <h2 class="text-xl font-bold text-white mb-3">Bola</h2>
+                <p class="text-sm text-slate-300 leading-relaxed">Permukaan yang memiliki semua titik pada jarak tetap dari pusat. Bentuk sempurna tanpa rusuk dan sudut.</p>
+            </article>
+            <article class="glass-card p-6">
+                <h2 class="text-xl font-bold text-white mb-3">Tabung</h2>
+                <p class="text-sm text-slate-300 leading-relaxed">Silinder dengan dua alas lingkaran identik dan selimut lengkung yang menghubungkan keduanya.</p>
+            </article>
+            <article class="glass-card p-6">
+                <h2 class="text-xl font-bold text-white mb-3">Kerucut</h2>
+                <p class="text-sm text-slate-300 leading-relaxed">Bangun ruang dengan alas lingkaran dan satu titik puncak, membentuk permukaan selimut yang meruncing.</p>
+            </article>
+            <article class="glass-card p-6 md:col-span-2">
+                <h2 class="text-xl font-bold text-white mb-3">Prisma Segitiga</h2>
+                <p class="text-sm text-slate-300 leading-relaxed">Bangun ruang dengan dua alas segitiga kongruen dan tiga sisi sejajar berbentuk segiempat.</p>
+            </article>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,66 +1,412 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halaman Bentuk - Ruang Bentuk</title>
+    <title>Ruang Bentuk - Eksplorasi Geometri Interaktif</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+    
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #090d16, #0b1320);
-            color: #f8fafc;
+            background: linear-gradient(135deg, #090d16, #111827, #07263e);
+            color: #f1f5f9;
             min-height: 100vh;
+            overflow-x: hidden;
         }
-        .glass-card {
-            background: rgba(255,255,255,0.06);
-            backdrop-filter: blur(18px);
-            border: 1px solid rgba(255,255,255,0.08);
+
+        /* --- Efek Liquid Glass --- */
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 1.25rem;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
         }
-        .page-title {
-            text-shadow: 0 0 24px rgba(14,165,233,0.25);
+
+        /* --- Gaya Navigasi --- */
+        .shape-button {
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .shape-button:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        .shape-button.active {
+            background: rgba(14, 165, 233, 0.15);
+            border-color: rgba(14, 165, 233, 0.5);
+            box-shadow: 0 0 20px rgba(14, 165, 233, 0.15);
+        }
+
+        /* --- Panggung 3D Rotasi --- */
+        #shape-stage {
+            perspective: 1000px;
+        }
+        .shape-container {
+            transition: transform 0.2s ease-out;
+            transform-style: preserve-3d;
+        }
+
+        /* --- Desain Kubus 3D Murni --- */
+        .cube {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(-20deg) rotateY(35deg);
+            animation: spin 15s infinite linear;
+        }
+        .cube-face {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background: rgba(14, 165, 233, 0.1);
+            border: 1.5px solid rgba(14, 165, 233, 0.4);
+            backdrop-filter: blur(4px);
+        }
+        .front  { transform: translateZ(60px); }
+        .back   { transform: rotateY(180deg) translateZ(60px); }
+        .right  { transform: rotateY(90deg) translateZ(60px); }
+        .left   { transform: rotateY(-90deg) translateZ(60px); }
+        .top    { transform: rotateX(90deg) translateZ(60px); background: rgba(14, 165, 233, 0.15); }
+        .bottom { transform: rotateX(-90deg) translateZ(60px); }
+
+        @keyframes spin {
+            from { transform: rotateX(-20deg) rotateY(0deg); }
+            to { transform: rotateX(-20deg) rotateY(360deg); }
+        }
+
+        /* --- Watermark --- */
+        #watermark {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.75rem;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s ease;
+            z-index: 40;
+        }
+        #watermark:hover {
+            color: #0ea5e9;
+            border-color: rgba(14, 165, 233, 0.4);
+            background: rgba(14, 165, 233, 0.05);
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* --- Gaya Halaman Intro/Presentasi --- */
+        #intro-screen {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at center, #0f172a 0%, #05070c 100%);
+            transition: all 1s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+        
+        .glow-text {
+            text-shadow: 0 0 30px rgba(14, 165, 233, 0.3);
         }
     </style>
 </head>
-<body class="p-6 md:p-10">
-    <main class="max-w-6xl mx-auto space-y-8">
-        <header class="flex flex-col md:flex-row items-start justify-between gap-4">
-            <div>
-                <p class="text-xs uppercase tracking-[0.35em] text-sky-400 mb-3">Navigasi Bentuk</p>
-                <h1 class="text-4xl md:text-5xl font-extrabold text-white page-title">Halaman Bentuk</h1>
-                <p class="mt-4 max-w-2xl text-slate-300 leading-relaxed">Pelajari kumpulan bentuk ruang secara ringkas dan kembali kapan saja ke presentasi interaktif.</p>
+<body class="p-4 md:p-10 min-h-screen flex flex-col justify-center">
+
+    <div id="intro-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center text-center p-6">
+        <div class="absolute w-[500px] h-[500px] bg-sky-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        
+        <div class="space-y-6 max-w-2xl transform translate-y-4 animate-[fadeInUp_1s_ease_forwards]">
+            <span class="text-xs font-bold tracking-[0.3em] text-sky-400 uppercase bg-sky-500/10 px-4 py-2 rounded-full">
+                Media Pembelajaran Interaktif
+            </span>
+            <h1 class="text-4xl md:text-6xl font-extrabold text-white tracking-tight leading-none glow-text">
+                Eksplorasi Ruang Bentuk
+            </h1>
+            <div class="w-16 h-[2px] bg-sky-500 mx-auto my-4"></div>
+            <p class="text-slate-400 text-sm md:text-base max-w-md mx-auto font-light leading-relaxed">
+                Sebuah persembahan presentasi geometri digital berbasis web dengan desain liquid glass & parallax modern.
+            </p>
+            
+            <div class="pt-8">
+                <p class="text-xs uppercase tracking-widest text-slate-500 mb-1">Dibuat Oleh:</p>
+                <p class="text-lg font-semibold text-slate-200 tracking-wide">Andi Ahmad Afif M</p>
             </div>
-            <a href="index.html" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-sky-500 text-white font-semibold shadow-lg shadow-sky-500/20 hover:bg-sky-400 transition">
-                <i class="fa-solid fa-arrow-left"></i>
-                Kembali ke Beranda
-            </a>
+
+            <div class="pt-10 flex flex-col gap-4 items-center">
+                <button id="btn-enter" class="px-8 py-3.5 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold rounded-xl shadow-lg shadow-sky-500/20 hover:shadow-sky-500/40 hover:scale-105 transition-all duration-300 flex items-center gap-3 mx-auto group">
+                    Mulai Eksplorasi
+                    <i class="fa-solid fa-arrow-right text-sm transition-transform group-hover:translate-x-1"></i>
+                </button>
+                <a href="bentuk.html" class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/10 text-white border border-white/15 hover:bg-white/15 transition">
+                    <i class="fa-solid fa-shapes"></i>
+                    Lihat Halaman Bentuk
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-content" class="opacity-0 pointer-events-none transition-opacity duration-1000 max-w-7xl mx-auto w-full space-y-8">
+        
+        <div class="fixed inset-0 pointer-events-none -z-10" id="parallax-bg">
+            <div class="absolute w-72 h-72 bg-sky-500/5 rounded-full blur-[100px]" style="top: 15%; left: 10%;"></div>
+            <div class="absolute w-96 h-96 bg-blue-600/5 rounded-full blur-[120px]" style="bottom: 15%; right: 15%;"></div>
+        </div>
+
+        <header class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <div class="md:col-span-6 p-6 md:p-8 liquid-glass flex flex-col justify-center">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+                    <span class="text-xs uppercase tracking-widest text-sky-400 font-semibold">Live Project</span>
+                </div>
+                <h2 class="text-3xl font-extrabold text-white tracking-tight mb-2">Ruang Bentuk</h2>
+                <p class="text-sm text-slate-400 leading-relaxed">
+                    Visualisasi presisi geometri 3D interaktif. Gerakkan kursor di atas panggung untuk memutar objek secara dinamis.
+                </p>
+            </div>
+            <div class="md:col-span-3 p-6 liquid-glass flex flex-col justify-center items-center text-center">
+                <span class="text-xs uppercase tracking-widest text-slate-400 mb-1">Durasi Sesi</span>
+                <span class="text-3xl font-bold text-white tracking-tight" id="explore-timer">0 detik</span>
+            </div>
+            <div class="md:col-span-3 p-6 liquid-glass flex flex-col justify-center items-center text-center">
+                <span class="text-xs uppercase tracking-widest text-slate-400 mb-1">Cakupan Materi</span>
+                <span class="text-xl font-semibold text-sky-400 tracking-wide">5 Bangun Ruang</span>
+            </div>
         </header>
 
-        <section class="grid gap-6 md:grid-cols-2">
-            <article class="glass-card p-6">
-                <h2 class="text-xl font-bold text-white mb-3">Kubus</h2>
-                <p class="text-sm text-slate-300 leading-relaxed">Bangun ruang yang dibatasi enam sisi berbentuk bujur sangkar sama besar dengan 12 rusuk dan 8 titik sudut.</p>
-            </article>
-            <article class="glass-card p-6">
-                <h2 class="text-xl font-bold text-white mb-3">Bola</h2>
-                <p class="text-sm text-slate-300 leading-relaxed">Permukaan yang memiliki semua titik pada jarak tetap dari pusat. Bentuk sempurna tanpa rusuk dan sudut.</p>
-            </article>
-            <article class="glass-card p-6">
-                <h2 class="text-xl font-bold text-white mb-3">Tabung</h2>
-                <p class="text-sm text-slate-300 leading-relaxed">Silinder dengan dua alas lingkaran identik dan selimut lengkung yang menghubungkan keduanya.</p>
-            </article>
-            <article class="glass-card p-6">
-                <h2 class="text-xl font-bold text-white mb-3">Kerucut</h2>
-                <p class="text-sm text-slate-300 leading-relaxed">Bangun ruang dengan alas lingkaran dan satu titik puncak, membentuk permukaan selimut yang meruncing.</p>
-            </article>
-            <article class="glass-card p-6 md:col-span-2">
-                <h2 class="text-xl font-bold text-white mb-3">Prisma Segitiga</h2>
-                <p class="text-sm text-slate-300 leading-relaxed">Bangun ruang dengan dua alas segitiga kongruen dan tiga sisi sejajar berbentuk segiempat.</p>
-            </article>
-        </section>
-    </main>
+        <div class="flex justify-end">
+            <a href="bentuk.html" class="inline-flex items-center gap-2 px-5 py-3 bg-sky-500/95 text-white rounded-2xl font-semibold shadow-lg shadow-sky-500/20 hover:bg-sky-400 transition-all duration-300">
+                <i class="fa-solid fa-shapes"></i>
+                Lihat Halaman Bentuk
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <nav class="lg:col-span-3 grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-1 gap-3 w-full">
+                <button class="shape-button active flex items-center gap-3.5 p-4 liquid-glass text-left" data-shape="kubus">
+                    <div class="w-10 h-10 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-400"><i class="fa-solid fa-cube text-xl"></i></div>
+                    <div><h3 class="font-bold text-sm text-white">Kubus</h3><p class="text-[11px] text-slate-400 hidden sm:block">6 Sisi</p></div>
+                </button>
+                <button class="shape-button flex items-center gap-3.5 p-4 liquid-glass text-left" data-shape="bola">
+                    <div class="w-10 h-10 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-400"><i class="fa-solid fa-circle text-xl"></i></div>
+                    <div><h3 class="font-bold text-sm text-white">Bola</h3><p class="text-[11px] text-slate-400 hidden sm:block">Sisi Lengkung</p></div>
+                </button>
+                <button class="shape-button flex items-center gap-3.5 p-4 liquid-glass text-left" data-shape="tabung">
+                    <div class="w-10 h-10 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-400"><i class="fa-solid fa-cylinder text-xl"></i></div>
+                    <div><h3 class="font-bold text-sm text-white">Tabung</h3><p class="text-[11px] text-slate-400 hidden sm:block">Alas Lingkaran</p></div>
+                </button>
+                <button class="shape-button flex items-center gap-3.5 p-4 liquid-glass text-left" data-shape="kerucut">
+                    <div class="w-10 h-10 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-400"><i class="fa-solid fa-play rotate-270 text-lg"></i></div>
+                    <div><h3 class="font-bold text-sm text-white">Kerucut</h3><p class="text-[11px] text-slate-400 hidden sm:block">Titik Puncak</p></div>
+                </button>
+                <button class="shape-button flex items-center gap-3.5 p-4 liquid-glass text-left" data-shape="prisma">
+                    <div class="w-10 h-10 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-400"><i class="fa-solid fa-shapes text-lg"></i></div>
+                    <div><h3 class="font-bold text-sm text-white">Prisma</h3><p class="text-[11px] text-slate-400 hidden sm:block">Sisi Sejajar</p></div>
+                </button>
+            </nav>
+
+            <section class="lg:col-span-4 p-8 liquid-glass flex flex-col items-center justify-center min-h-[380px] relative overflow-hidden" id="shape-stage">
+                <div class="absolute top-4 left-4 flex items-center gap-1.5 text-slate-500 text-[11px] uppercase tracking-wider">
+                    <i class="fa-solid fa-rotate"></i> Interactive 3D Stage
+                </div>
+                <div id="shape-container" class="shape-container w-full h-full flex items-center justify-center"></div>
+            </section>
+
+            <aside class="lg:col-span-5 p-6 md:p-8 liquid-glass flex flex-col min-h-[380px] transition-all duration-300" id="detail-panel">
+                <div class="border-b border-white/5 pb-4 mb-5">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-sky-400" id="detail-category">Geometri Ruang</span>
+                    <h2 class="text-3xl font-bold text-white mt-1" id="detail-title">Kubus</h2>
+                    <p class="text-xs text-slate-400 mt-2 leading-relaxed" id="detail-description">Mendeteksi data...</p>
+                </div>
+                
+                <div class="space-y-4 flex-grow">
+                    <div>
+                        <h4 class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-2"><i class="fa-solid fa-list-check text-sky-400 mr-1.5"></i> Karakteristik Berkas</h4>
+                        <ul class="text-xs space-y-1.5 bg-black/20 p-3 rounded-xl border border-white/5" id="detail-characteristics"></ul>
+                    </div>
+                    <div>
+                        <h4 class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-2"><i class="fa-solid fa-calculator text-sky-400 mr-1.5"></i> Formulasi Rumus</h4>
+                        <div class="text-xs space-y-1.5 bg-sky-950/20 p-3 rounded-xl border border-sky-500/10 font-mono text-sky-300" id="detail-formulas"></div>
+                    </div>
+                    <div>
+                        <h4 class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-2"><i class="fa-solid fa-lightbulb text-sky-400 mr-1.5"></i> Implementasi Nyata</h4>
+                        <p class="text-xs text-slate-300 leading-relaxed bg-black/20 p-3 rounded-xl border border-white/5" id="detail-applications"></p>
+                    </div>
+                </div>
+            </aside>
+
+        </div>
+    </div>
+
+    <div id="watermark">
+        Created by Andi Ahmad Afif M
+    </div>
+
+    <script>
+        const shapeData = {
+            kubus: {
+                title: "Kubus",
+                description: "Bangun ruang tiga dimensi yang dibatasi oleh enam bidang sisi berbentuk bujur sangkar yang kongruen.",
+                characteristics: "<li><strong class='text-slate-300'>Jumlah Sisi:</strong> 6 Persegi Saling Kongruen</li><li><strong class='text-slate-300'>Jumlah Rusuk:</strong> 12 Panjang Sama</li><li><strong class='text-slate-300'>Titik Sudut:</strong> 8 Titik</li>",
+                formulas: "<div>Volume = s × s × s (s³)</div><div>Luas Permukaan = 6 × s²</div>",
+                applications: "Dadu permainan, rubik reflektif, kotak kado, arsitektur modern minimalis.",
+                visual: '<div class="cube"><div class="cube-face front"></div><div class="cube-face back"></div><div class="cube-face right"></div><div class="cube-face left"></div><div class="cube-face top"></div><div class="cube-face bottom"></div></div>'
+            },
+            bola: {
+                title: "Bola",
+                description: "Bangun ruang tiga dimensi yang dibentuk oleh tak hingga lingkaran berjari-jari sama panjang dan berpusat pada satu titik yang sama.",
+                characteristics: "<li><strong class='text-slate-300'>Sisi:</strong> 1 Bidang Lengkung Sempurna</li><li><strong class='text-slate-300'>Rusuk:</strong> 0 (Tidak Memiliki)</li><li><strong class='text-slate-300'>Titik Sudut:</strong> 0</li>",
+                formulas: "<div>Volume = 4/3 × π × r³</div><div>Luas Permukaan = 4 × π × r²</div>",
+                applications: "Kubah planetarium, bola olahraga, komponen bearing mesin, globe.",
+                visual: `<svg width="140" height="140" viewBox="0 0 100 100">
+                            <defs>
+                                <radialGradient id="ballGlow" cx="30%" cy="30%" r="70%">
+                                    <stop offset="0%" stop-color="rgba(14, 165, 233, 0.4)"/>
+                                    <stop offset="70%" stop-color="rgba(9, 24, 46, 0.2)"/>
+                                    <stop offset="100%" stop-color="rgba(14, 165, 233, 0.5)"/>
+                                </radialGradient>
+                            </defs>
+                            <circle cx="50" cy="50" r="45" fill="url(#ballGlow)" stroke="rgba(14, 165, 233, 0.6)" stroke-width="1.5"/>
+                            <ellipse cx="50" cy="50" rx="45" ry="15" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="4"/>
+                         </svg>`
+            },
+            tabung: {
+                title: "Tabung (Silinder)",
+                description: "Bangun ruang tiga dimensi yang dibentuk oleh dua buah lingkaran identik yang sejajar dan sebuah persegi panjang yang mengelilingi kedua lingkaran tersebut.",
+                characteristics: "<li><strong class='text-slate-300'>Total Sisi:</strong> 3 (Alas, Penutup & Selimut Lengkung)</li><li><strong class='text-slate-300'>Jumlah Rusuk:</strong> 2 Rusuk Lengkung</li><li><strong class='text-slate-300'>Titik Sudut:</strong> 0</li>",
+                formulas: "<div>Volume = π × r² × t</div><div>Luas Permukaan = 2 × π × r × (r + t)</div>",
+                applications: "Pipa hidrolik, kaleng kemasan makanan, silinder mesin motor, baterai.",
+                visual: `<svg width="120" height="160" viewBox="0 0 100 120">
+                            <g fill="rgba(14, 165, 233, 0.08)" stroke="rgba(14, 165, 233, 0.5)" stroke-width="1.5">
+                                <path d="M20,25 L20,95 A30,12 0 0,0 80,95 L80,25 Z" />
+                                <ellipse cx="50" cy="25" rx="30" ry="12" fill="rgba(14, 165, 233, 0.15)"/>
+                                <ellipse cx="50" cy="95" rx="30" ry="12" fill="none" stroke-dasharray="3" />
+                            </g>
+                         </svg>`
+            },
+            kerucut: {
+                title: "Kerucut",
+                description: "Limas dengan alas berbentuk lingkaran. Sisi tegaknya berupa bidang lengkung yang runcing di satu ujung.",
+                characteristics: "<li><strong class='text-slate-300'>Total Sisi:</strong> 2 Sisi (Alas Lingkaran & Selimut)</li><li><strong class='text-slate-300'>Jumlah Rusuk:</strong> 1 Rusuk Lengkung</li><li><strong class='text-slate-300'>Titik Puncak:</strong> 1 Titik</li>",
+                formulas: "<div>Volume = 1/3 × π × r² × t</div><div>Luas Permukaan = π × r × (r + s)</div>",
+                applications: "Traffic cone jalanan, cetakan tumpeng, corong dispenser, atap menara.",
+                visual: `<svg width="130" height="160" viewBox="0 0 100 120">
+                            <g fill="rgba(14, 165, 233, 0.08)" stroke="rgba(14, 165, 233, 0.5)" stroke-width="1.5">
+                                <line x1="50" y1="15" x2="20" y2="95" />
+                                <line x1="50" y1="15" x2="80" y2="95" />
+                                <path d="M20,95 A30,12 0 0,0 80,95" />
+                                <path d="M80,95 A30,12 0 0,0 20,95" stroke-dasharray="3" fill="none"/>
+                                <ellipse cx="50" cy="95" rx="30" ry="12" fill="rgba(14, 165, 233, 0.1)"/>
+                            </g>
+                         </svg>`
+            },
+            prisma: {
+                title: "Prisma Segitiga",
+                description: "Bangun ruang yang memiliki dua bidang alas dan atap berbentuk segitiga yang sejajar serta sebangun (kongruen).",
+                characteristics: "<li><strong class='text-slate-300'>Jumlah Sisi:</strong> 5 Bidang (2 Segitiga, 3 Segiempat)</li><li><strong class='text-slate-300'>Jumlah Rusuk:</strong> 9 Struktur Rusuk</li><li><strong class='text-slate-300'>Titik Sudut:</strong> 6 Titik</li>",
+                formulas: "<div>Volume = Luas Alas (Segitiga) × Tinggi Prisma</div><div>Luas Permukaan = (2 × L.Alas) + (Keliling Alas × t)</div>",
+                applications: "Atap bangunan tradisional, prisma dispersi kaca optik, tenda kemah.",
+                visual: `<svg width="140" height="160" viewBox="0 0 100 120">
+                            <line x1="20" y1="35" x2="50" y2="20" stroke="rgba(14, 165, 233, 0.3)" stroke-width="1.5" stroke-dasharray="3"/>
+                            <line x1="50" y1="20" x2="80" y2="35" stroke="rgba(14, 165, 233, 0.3)" stroke-width="1.5" stroke-dasharray="3"/>
+                            <line x1="50" y1="20" x2="50" y2="90" stroke="rgba(14, 165, 233, 0.3)" stroke-width="1.5" stroke-dasharray="3"/>
+                            <polygon points="20,35 80,35 80,105 20,105" fill="rgba(14, 165, 233, 0.05)" stroke="rgba(14, 165, 233, 0.5)" stroke-width="1.5"/>
+                            <polygon points="20,105 80,105 50,90" fill="rgba(14, 165, 233, 0.15)" stroke="rgba(14, 165, 233, 0.5)" stroke-width="1.5"/>
+                            <line x1="20" y1="35" x2="20" y2="105" stroke="rgba(14, 165, 233, 0.5)" stroke-width="1.5"/>
+                            <line x1="80" y1="35" x2="80" y2="105" stroke="rgba(14, 165, 233, 0.5)" stroke-width="1.5"/>
+                         </svg>`
+            }
+        };
+
+        const introScreen = document.getElementById('intro-screen');
+        const mainContent = document.getElementById('main-content');
+        const btnEnter = document.getElementById('btn-enter');
+
+        btnEnter.addEventListener('click', () => {
+            introScreen.style.opacity = '0';
+            introScreen.style.pointerEvents = 'none';
+            
+            setTimeout(() => {
+                introScreen.classList.add('hidden');
+                mainContent.classList.remove('opacity-0', 'pointer-events-none');
+                startTimer();
+            }, 1000);
+        });
+
+        const shapeButtons = document.querySelectorAll('.shape-button');
+        const detailPanel = document.getElementById('detail-panel');
+        const shapeContainer = document.getElementById('shape-container');
+
+        function updateData(key) {
+            const data = shapeData[key];
+            if (!data) return;
+
+            detailPanel.style.opacity = '0.3';
+            detailPanel.style.transform = 'scale(0.99)';
+            shapeContainer.style.opacity = '0';
+
+            setTimeout(() => {
+                document.getElementById('detail-title').textContent = data.title;
+                document.getElementById('detail-description').textContent = data.description;
+                document.getElementById('detail-characteristics').innerHTML = data.characteristics;
+                document.getElementById('detail-formulas').innerHTML = data.formulas;
+                document.getElementById('detail-applications').textContent = data.applications;
+                shapeContainer.innerHTML = data.visual;
+
+                detailPanel.style.opacity = '1';
+                detailPanel.style.transform = 'scale(1)';
+                shapeContainer.style.opacity = '1';
+            }, 250);
+
+            shapeButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-shape="${key}"]`).classList.add('active');
+        }
+
+        shapeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                updateData(btn.getAttribute('data-shape'));
+            });
+        });
+
+        let timerSeconds = 0;
+        function startTimer() {
+            setInterval(() => {
+                timerSeconds++;
+                document.getElementById('explore-timer').textContent = `${timerSeconds} detik`;
+            }, 1000);
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            const { clientX, clientY } = e;
+            const { innerWidth, innerHeight } = window;
+            const offsetX = (clientX / innerWidth) - 0.5;
+            const offsetY = (clientY / innerHeight) - 0.5;
+
+            const bgNodes = document.getElementById('parallax-bg').children;
+            bgNodes[0].style.transform = `translate(${offsetX * 40}px, ${offsetY * 40}px)`;
+            bgNodes[1].style.transform = `translate(${offsetX * -30}px, ${offsetY * -30}px)`;
+
+            const stageContainer = document.getElementById('shape-container');
+            if (stageContainer) {
+                const rotX = offsetY * -35;
+                const rotY = offsetX * 35;
+                stageContainer.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+            }
+        });
+
+        updateData('kubus');
+    </script>
+
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </body>
 </html>
